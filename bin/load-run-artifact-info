@@ -1,0 +1,35 @@
+#!/bin/bash
+set -euo pipefail
+
+TOKEN="$1"
+REPO="$2"
+RUN_ID="$3"
+ARTIFACT_NAME="$4"
+WAIT_BETWEEN_ATTEMPTS="$5"
+
+request() {
+  local TOKEN="$1"
+  local REPO="$2"
+  local RUN_ID="$3"
+  curl -sSL \
+    -H "Authorization: Bearer ${TOKEN}" \
+    "https://api.github.com/repos/${REPO}/actions/runs/${RUN_ID}/artifacts"
+}
+
+extract-artifact() {
+  local NAME="$1"
+  jq \
+    --arg name "$NAME" \
+    '.artifacts[] | select(.name == $name)'
+}
+
+while true; do
+  INFO="$(request "$TOKEN" "$REPO" "$RUN_ID")"
+  printf "Obtained response:\n---\n%s\n---\n" "$INFO" >&2
+  ARTIFACT="$(extract-artifact "$ARTIFACT_NAME" <<<"$INFO")"
+  if [[ "$ARTIFACT" != "" ]]; then
+    printf "%s\n" "$ARTIFACT"
+    exit 0
+  fi
+  sleep "$WAIT_BETWEEN_ATTEMPTS"
+done

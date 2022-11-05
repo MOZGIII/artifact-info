@@ -1,0 +1,51 @@
+name: 'Artifact Info'
+description: |
+  Get the info of the previously uploaded Github Actions artifact
+branding:
+  icon: info
+  color: blue
+inputs:
+  repo:
+    description: 'The repo name in the form of "[organization/user]/[repo]"'
+    required: true
+    default: ${{ github.repository }}
+  run-id:
+    description: 'The run ID to filter artifacts at'
+    required: true
+    default: ${{ github.run_id }}
+  artifact-name:
+    description: 'The name of the artifact to look for'
+    required: true
+  token:
+    description: 'The Github Token to authenticate with'
+    required: true
+    default: ${{ github.token }}
+  timeout:
+    description: 'The timeout in seconds for the data fetching loop'
+    required: true
+    default: "600"
+  wait-between-attempts:
+    description: 'The amount of time in seconds to wait between data fetching attempts in the loop'
+    required: true
+    default: "10"
+outputs:
+  raw:
+    description: "The raw artifact info JSON"
+    value: ${{ steps.info.outputs.raw }}
+  archive-download-url:
+    description: "The archive download URL for the artifact"
+    value: ${{ steps.info.outputs.archive-download-url }}
+runs:
+  using: "composite"
+  steps:
+    - id: info
+      run: ${{ github.action_path }}/bin/action
+      env:
+        TIMEOUT: ${{ inputs.timeout }}
+        WAIT_BETWEEN_ATTEMPTS: ${{ inputs.wait-between-attempts }}
+        ACTION_PATH: ${{ github.action_path }}
+        TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        RUN_ID: ${{ inputs.run-id }}
+        ARTIFACT_NAME: ${{ inputs.artifact-name }}
+      shell: bash

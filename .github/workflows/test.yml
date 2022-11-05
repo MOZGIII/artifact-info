@@ -1,0 +1,35 @@
+name: test
+
+on:
+  push:
+
+jobs:
+
+  test:
+    name: Test
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+
+      - name: Generate sample artifact
+        run: |
+          mkdir -p "${{ runner.temp }}/artifact"
+          printf "%d\n" "$RANDOM_NUMBER" > "${{ runner.temp }}/artifact/random.txt"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sample-artifact
+          path: "${{ runner.temp }}/artifact"
+
+      - uses: actions/checkout@v3
+
+      - uses: ./.
+        id: artifact-info
+        with:
+          artifact-name: sample-artifact
+
+      - run: |
+          printf "%s\n" "${{ steps.artifact-info.outputs.archive-download-url }}"

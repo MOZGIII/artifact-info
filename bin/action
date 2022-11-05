@@ -1,0 +1,8 @@
+#!/bin/bash
+set -euo pipefail
+
+INFO="$(timeout "$TIMEOUT" "$ACTION_PATH/bin/load-run-artifact-info" "$TOKEN" "$REPO" "$RUN_ID" "$ARTIFACT_NAME" "$WAIT_BETWEEN_ATTEMPTS")"
+printf "%s\n" "$INFO"
+printf "raw=%s\n" "$(jq -c <<<"$INFO")" >>$GITHUB_OUTPUT
+URL="$(jq -r '.archive_download_url' <<<"$INFO")"
+printf "archive-download-url=%s\n" "$URL" >>$GITHUB_OUTPUT
